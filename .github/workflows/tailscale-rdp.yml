@@ -76,6 +76,22 @@ jobs:
         Write-Host "Password: $env:RDP_PASS"
       shell: powershell
 
+    - name: Start Chrome with CDP
+      run: |
+        Write-Host "Opening Firewall for CDP port 9222..."
+        New-NetFirewallRule -DisplayName "Chrome CDP" -Direction Inbound -LocalPort 9222 -Protocol TCP -Action Allow
+        
+        Write-Host "Starting Chrome with remote debugging..."
+        $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+        if (-not (Test-Path $chromePath)) {
+            $chromePath = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+        }
+        
+        Start-Process -FilePath $chromePath -ArgumentList "--remote-debugging-port=9222 --user-data-dir=C:\chrome_dev_profile"
+        
+        Write-Host "Chrome started on port 9222"
+      shell: powershell
+
     - name: Get Tailscale IP and Display Connection Info
       run: |
         Write-Host "Getting Tailscale IP address..."
