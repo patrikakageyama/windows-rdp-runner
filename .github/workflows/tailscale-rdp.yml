@@ -92,6 +92,8 @@ jobs:
             $chromePath = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
         }
         
+        # Prevent GitHub Actions runner from killing Chrome after this step completes
+        $env:RUNNER_TRACKING_ID = $null
         Start-Process -FilePath $chromePath -ArgumentList "--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --remote-allow-origins=* --no-first-run --no-default-browser-check --user-data-dir=C:\chrome_dev_profile"
         
         Write-Host "Chrome started on port 9222"
@@ -141,6 +143,12 @@ jobs:
         
         Write-Host "=== Network Configuration ==="
         Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.InterfaceAlias -notmatch "Loopback"} | Format-Table
+        
+        Write-Host "=== Chrome Process Status ==="
+        Get-Process -Name "chrome" -ErrorAction SilentlyContinue | Select-Object Id, ProcessName | Format-Table
+        
+        Write-Host "=== Port 9222 Bindings ==="
+        Get-NetTCPConnection -LocalPort 9222 -ErrorAction SilentlyContinue | Format-Table
         
         Write-Host "=== Tailscale Status ==="
         $env:PATH = "$env:PATH;C:\Program Files\Tailscale"
